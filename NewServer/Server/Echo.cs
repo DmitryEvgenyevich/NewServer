@@ -23,7 +23,7 @@ namespace NewServer.Server
 
         protected override void OnClose(CloseEventArgs e)
         {
-           WebSocketServerManager.RemoveClient(this);
+            WebSocketServerManager.RemoveClient(this);
             Console.WriteLine("WebSocket connection closed.");
         }
 

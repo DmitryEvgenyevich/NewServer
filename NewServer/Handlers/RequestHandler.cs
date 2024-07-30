@@ -12,7 +12,7 @@ namespace NewServer.Handlers
 
             if (method == null)
             {
-                return new Response { ErrorMessage = $"Method '{request.command}' not found in MessengerFunctionality" };
+                return new Response { errorMessage = $"Method '{request.command}' not found in MessengerFunctionality" };
             }
 
             var messengerFunctionalityInstance = new MessengerFunctionality();
