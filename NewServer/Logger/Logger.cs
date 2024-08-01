@@ -9,7 +9,7 @@ namespace NewServer.Logger
         private static readonly string _fileName = "Log.txt";
 
         // The path to the directory where the log file will be stored.
-        private static readonly string _logPath = @"C:\Users\WRZTYD\log\"; // Ensure there is a backslash at the end of the path
+        private static readonly string _logPath = @"C:\Server\log\"; // Ensure there is a backslash at the end of the path
 
         // Logs a message with a specified log level.
         public static void Log(string message, LogLevel level, [CallerMemberName] string functionName = "")
