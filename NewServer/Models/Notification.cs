@@ -1,5 +1,6 @@
 ﻿using NewServer.Enums;
 using NewServer.Interfaces;
+using Newtonsoft.Json.Linq;
 
 namespace NewServer.Models
 {
@@ -7,6 +8,6 @@ namespace NewServer.Models
     {
         public MessageType type { get; set; } = MessageType.Notification;
         public NotificationTypes typeOfNotification { get; set; }
-        public string? data { get; set; }
+        public JObject? data { get; set; }
     }
 }

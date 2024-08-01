@@ -1,12 +1,13 @@
 ﻿using NewServer.Services;
 using NewServer.Models;
 using System.Reflection;
+using NewServer.Server;
 
 namespace NewServer.Handlers
 {
     public class RequestHandler
     {
-        public static async Task<Response> HandleRequest(Request request)
+        public static async Task<Response> HandleRequest(Request request, Echo client)
         {
             MethodInfo method = typeof(MessengerFunctionality).GetMethod(request.command!, BindingFlags.Public | BindingFlags.Static)!;
 
@@ -17,7 +18,7 @@ namespace NewServer.Handlers
 
             var messengerFunctionalityInstance = new MessengerFunctionality();
 
-            object[] parameters = { request };
+            object[] parameters = { request, client };
 
             Task<Response> resultTask = (Task<Response>)method.Invoke(messengerFunctionalityInstance, parameters)!;
 

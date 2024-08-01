@@ -1,4 +1,5 @@
 ﻿using Supabase;
+using NewServer.Enums;
 using NewServer.Models;
 
 namespace NewServer.Database
@@ -25,6 +26,65 @@ namespace NewServer.Database
                 .Single();
 
             return response;
+        }
+
+        public static async Task<User?> GetUserByUsername(string username)
+        {
+            var response = await _database!.From<User>()
+                .Select(x => new object[] { x.id, x.username!, x.email! })
+                .Where(x => x.username == username)
+                .Single();
+
+            return response;
+        }
+
+        public static async Task<User?> GetUserByEmail(string email)
+        {
+            var response = await _database!.From<User>()
+                .Select(x => new object[] { x.id, x.username!, x.email! })
+                .Where(x => x.email == email)
+                .Single();
+
+            return response;
+        }
+
+        public static async Task<User?> InsertUserToTableUsers(User user)
+        {
+            try
+            {
+                var newUser = await _database!.From<User>()
+                            .Select(x => new object[] { x.id, x.username!, x.email! })
+                            .Insert(user!);
+
+                Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+
+                return newUser.Model!;
+            }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log(ex.Message, LogLevel.ERROR);
+                return null;
+            }
+        }
+
+        public static async Task<User?> SetNewPassword(string email, string password)
+        {
+            try
+            {
+                var value = await _database!
+                        .From<User>()
+                        .Select(x => new object[] { x.id })
+                        .Where(x => x.email == email)
+                        .Set(x => x.password!, password)
+                        .Update();
+
+                return value.Model;
+            }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log(ex.Message, LogLevel.ERROR);
+                return null;
+            }
         }
     }
 }

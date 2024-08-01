@@ -15,7 +15,7 @@ namespace NewServer.Server
             var request = JsonConvert.DeserializeObject<Request>(e.Data);
             request!.Socket = this;
 
-            var response = await RequestHandler.HandleRequest(request!);
+            var response = await RequestHandler.HandleRequest(request!, this);
             response.requestId = request.requestId;
 
             Send(JsonConvert.SerializeObject(response));

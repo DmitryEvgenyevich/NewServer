@@ -1,5 +1,6 @@
 ﻿using NewServer.Enums;
 using NewServer.Interfaces;
+using Newtonsoft.Json.Linq;
 
 namespace NewServer.Models
 {
@@ -9,6 +10,6 @@ namespace NewServer.Models
         public MessageType type { get; set; } = MessageType.Response;
         public string? errorMessage { get; set; }
         public bool sendToClient { get; set; } = true;
-        public string? data { get; set; }
+        public JObject? data { get; set; }
     }
 }

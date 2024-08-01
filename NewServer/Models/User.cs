@@ -19,7 +19,7 @@ namespace NewServer.Models
         public string? password { get; set; }
         
         [Column("last_login")]
-        public DateTimeOffset last_login { get; set; }
+        public DateTimeOffset? last_login { get; set; }
 
         [Column("created_at")]
         public DateTimeOffset created_at { get; set; }
@@ -28,6 +28,21 @@ namespace NewServer.Models
         public string? description { get; set; }
 
         [Column("avatar_id")]
-        public int avatar_id { get; set; }
+        public int? avatar_id { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null || !(obj is User))
+                return false;
+
+            User other = (User)obj;
+            return this.email == other.email && this.username == other.username;
+        }
+
+        public override int GetHashCode()
+        {
+            // Используем простую комбинацию хэш-кодов полей
+            return HashCode.Combine(username, email);
+        }
     }
 }
