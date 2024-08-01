@@ -15,7 +15,7 @@ namespace NewServer.Services
 
         private static Response HandleInvalidUserData(string message)
         {
-            Logger.Logger.Log(message, LogLevel.ERROR);
+            Logger.Logger.Log(message, LogLevel.INFO);
             return new Response { errorMessage = message };
         }
 
