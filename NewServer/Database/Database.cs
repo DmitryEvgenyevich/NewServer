@@ -20,45 +20,75 @@ namespace NewServer.Database
 
         public static async Task<User?> GetUserByEmailAndPassword(string email, string password)
         {
-            var response = await _database!.From<User>()
-                .Select(x => new object[] { x.id, x.username!, x.email! })
-                .Where(x => x.email == email && x.password == password)
-                .Single();
+            try
+            {
+                var value = await _database!.From<User>()
+                    .Select(x => new object[] { x.id, x.username!, x.email! })
+                    .Where(x => x.email == email && x.password == password)
+                    .Single();
 
-            return response;
+                Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+
+                return value;
+            }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log(ex.Message, LogLevel.ERROR);
+                return null;
+            }
         }
 
         public static async Task<User?> GetUserByUsername(string username)
         {
-            var response = await _database!.From<User>()
-                .Select(x => new object[] { x.id, x.username!, x.email! })
-                .Where(x => x.username == username)
-                .Single();
+            try
+            {
+                var value = await _database!.From<User>()
+                    .Select(x => new object[] { x.id, x.username!, x.email! })
+                    .Where(x => x.username == username)
+                    .Single();
 
-            return response;
+                Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+
+                return value;
+            }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log(ex.Message, LogLevel.ERROR);
+                return null;
+            }
         }
 
         public static async Task<User?> GetUserByEmail(string email)
         {
-            var response = await _database!.From<User>()
-                .Select(x => new object[] { x.id, x.username!, x.email! })
-                .Where(x => x.email == email)
-                .Single();
+            try
+            {
+                var value = await _database!.From<User>()
+                    .Select(x => new object[] { x.id, x.username!, x.email! })
+                    .Where(x => x.email == email)
+                    .Single();
 
-            return response;
+                Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+
+                return value;
+            }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log(ex.Message, LogLevel.ERROR);
+                return null;
+            }
         }
 
         public static async Task<User?> InsertUserToTableUsers(User user)
         {
             try
             {
-                var newUser = await _database!.From<User>()
-                            .Select(x => new object[] { x.id, x.username!, x.email! })
-                            .Insert(user!);
+                var value = await _database!.From<User>()
+                    .Select(x => new object[] { x.id, x.username!, x.email! })
+                    .Insert(user!);
 
                 Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
 
-                return newUser.Model!;
+                return value.Model!;
             }
             catch (Exception ex)
             {
@@ -72,11 +102,13 @@ namespace NewServer.Database
             try
             {
                 var value = await _database!
-                        .From<User>()
-                        .Select(x => new object[] { x.id })
-                        .Where(x => x.email == email)
-                        .Set(x => x.password!, password)
-                        .Update();
+                    .From<User>()
+                    .Select(x => new object[] { x.id })
+                    .Where(x => x.email == email)
+                    .Set(x => x.password!, password)
+                    .Update();
+
+                Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
 
                 return value.Model;
             }

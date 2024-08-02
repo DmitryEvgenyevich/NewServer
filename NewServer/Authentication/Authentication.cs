@@ -20,6 +20,7 @@ namespace NewServer.Authentication
             // Add or update the user's code and expiration time in the dictionary.
             _authenticationList.AddOrUpdate(user, (code, expirationTime), (key, oldValue) => (code, expirationTime));
 
+            Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
             // Start a timer to automatically remove the record after the expiration period has elapsed.
             await Task.Delay(TimeSpan.FromMinutes(WAIT_IN_MINUTES));
             // After the delay, check if the record still exists and if the current time is past the expiration time.
@@ -50,8 +51,8 @@ namespace NewServer.Authentication
                             Logger.Logger.Log("Error from db.", LogLevel.ERROR);
                             return new Response { errorMessage = "Error from db." };
                         }
-                        Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
                     }
+                    Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
                     return new Response();  // Empty response indicates successful authentication.
                 }
                 else
@@ -60,6 +61,8 @@ namespace NewServer.Authentication
                     return new Response { errorMessage = "Wrong code" };
                 }
             }
+
+            Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
             // Return an error message if the record no longer exists or is expired.
             return new Response { errorMessage = "The code is no longer valid" };
         }
