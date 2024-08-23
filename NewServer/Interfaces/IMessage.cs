@@ -6,6 +6,6 @@ namespace NewServer.Interfaces
     public interface IMessage
     {
         MessageType type { get; set; }
-        JObject? data { get; set; }
+        JToken? data { get; set; }
     }
 }

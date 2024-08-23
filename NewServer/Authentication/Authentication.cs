@@ -1,6 +1,7 @@
 ﻿using NewServer.Models;
 using System.Collections.Concurrent;
 using NewServer.Enums;
+using NewServer.Database;
 
 namespace NewServer.Authentication
 {
@@ -45,7 +46,7 @@ namespace NewServer.Authentication
 
                     if (insertUserToDatabase)
                     {
-                        var newUser = await Database.Database.InsertUserToTableUsers(user);
+                        var newUser = await DatabaseSuperbase.InsertUserToTableUsers(user);
                         if (newUser == null)
                         {
                             Logger.Logger.Log("Error from db.", LogLevel.ERROR);

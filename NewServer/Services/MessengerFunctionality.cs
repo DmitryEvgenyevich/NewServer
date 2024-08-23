@@ -2,6 +2,7 @@
 using NewServer.Enums;
 using NewServer.Server;
 using Newtonsoft.Json.Linq;
+using NewServer.Database;
 
 namespace NewServer.Services
 {
@@ -35,7 +36,7 @@ namespace NewServer.Services
                     return HandleInvalidUserData("Invalid JSON data or empty email or password provided.");
                 }
 
-                var result = await Database.Database.GetUserByEmailAndPassword(deserializedUser.email, deserializedUser.password);
+                var result = await DatabaseSuperbase.GetUserByEmailAndPassword(deserializedUser.email, deserializedUser.password);
                 if (result == null)
                 {
                     return HandleUserNotFound();
@@ -61,12 +62,12 @@ namespace NewServer.Services
                     return HandleInvalidUserData("Invalid user data provided.");
                 }
 
-                if (await Database.Database.GetUserByUsername(deserializedUser.username) != null)
+                if (await DatabaseSuperbase.GetUserByUsername(deserializedUser.username) != null)
                 {
                     return new Response { errorMessage = "A user with this username already exists." };
                 }
 
-                if (await Database.Database.GetUserByEmail(deserializedUser.email) != null)
+                if (await DatabaseSuperbase.GetUserByEmail(deserializedUser.email!) != null)
                 {
                     return new Response { errorMessage = "A user with this email already exists." };
                 }
@@ -126,7 +127,7 @@ namespace NewServer.Services
                     return HandleInvalidUserData("Invalid user data or code.");
                 }
 
-                var result = await Database.Database.GetUserByEmail(deserializedUser.email);
+                var result = await DatabaseSuperbase.GetUserByEmail(deserializedUser.email);
 
                 if (result == null || result.id <= 0)
                 {
@@ -156,7 +157,7 @@ namespace NewServer.Services
                     return HandleInvalidUserData("Invalid user data or code.");
                 }
 
-                var result = await Database.Database.SetNewPassword(deserializedUser.email, deserializedUser.password);
+                var result = await DatabaseSuperbase.SetNewPassword(deserializedUser.email, deserializedUser.password!);
 
                 if (result == null || result.id <= 0)
                 {
@@ -169,6 +170,29 @@ namespace NewServer.Services
             catch (Exception ex)
             {
                 return LogAndReturnServerError(ex);
+            }
+        }
+
+        public static async Task<Response> GetMyChats(Request request, Echo? client)
+        {
+            try
+            {
+                var deserializedUser = request.data?.ToObject<User>();
+
+                var contactsData = await DatabaseSuperbase.GetChatsByUserId(deserializedUser!.id);
+                if (contactsData == null)
+                {
+                    Logger.Logger.Log("Error from db.", LogLevel.ERROR);
+                    return new Response { errorMessage = "Error from db." };
+                }
+
+                Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+                JArray jsonArray = JArray.Parse(contactsData);
+                return new Response { data = jsonArray };
+            }
+            catch (Exception ex)
+            {
+                return new Response { errorMessage = GlobalUtilities.GlobalUtilities.GetErrorMessage(ex) };
             }
         }
     }

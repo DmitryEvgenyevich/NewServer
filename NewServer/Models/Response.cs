@@ -10,6 +10,6 @@ namespace NewServer.Models
         public MessageType type { get; set; } = MessageType.Response;
         public string? errorMessage { get; set; }
         public bool sendToClient { get; set; } = true;
-        public JObject? data { get; set; }
+        public JToken? data { get; set; }
     }
 }

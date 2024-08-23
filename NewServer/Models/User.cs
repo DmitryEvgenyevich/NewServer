@@ -41,7 +41,6 @@ namespace NewServer.Models
 
         public override int GetHashCode()
         {
-            // Используем простую комбинацию хэш-кодов полей
             return HashCode.Combine(username, email);
         }
     }

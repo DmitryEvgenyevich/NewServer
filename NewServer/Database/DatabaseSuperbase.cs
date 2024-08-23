@@ -4,7 +4,7 @@ using NewServer.Models;
 
 namespace NewServer.Database
 {
-    public class Database
+    public class DatabaseSuperbase
     {
         private static Client? _database;
         private static SupabaseOptions options = new SupabaseOptions
@@ -23,7 +23,7 @@ namespace NewServer.Database
             try
             {
                 var value = await _database!.From<User>()
-                    .Select(x => new object[] { x.id, x.username!, x.email! })
+                    .Select(x => new object[] { x.id, x.username!, x.email!, x.description! })
                     .Where(x => x.email == email && x.password == password)
                     .Single();
 
@@ -111,6 +111,23 @@ namespace NewServer.Database
                 Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
 
                 return value.Model;
+            }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log(ex.Message, LogLevel.ERROR);
+                return null;
+            }
+        }
+
+        public static async Task<string?> GetChatsByUserId(int Id)
+        {
+            try
+            {
+                var result = (await _database!.Rpc("get_chat_data", new Dictionary<string, object> { { "id_of_user", Id } })).Content!;
+
+                Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+
+                return result;
             }
             catch (Exception ex)
             {

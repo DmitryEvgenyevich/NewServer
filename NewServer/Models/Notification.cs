@@ -8,6 +8,6 @@ namespace NewServer.Models
     {
         public MessageType type { get; set; } = MessageType.Notification;
         public NotificationTypes typeOfNotification { get; set; }
-        public JObject? data { get; set; }
+        public JToken? data { get; set; }
     }
 }
