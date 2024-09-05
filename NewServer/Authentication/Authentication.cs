@@ -46,7 +46,7 @@ namespace NewServer.Authentication
 
                     if (insertUserToDatabase)
                     {
-                        var newUser = await DatabaseSuperbase.InsertUserToTableUsers(user);
+                        var newUser = await DatabaseSupabase.InsertUserToTableUsers(user);
                         if (newUser == null)
                         {
                             Logger.Logger.Log("Error from db.", LogLevel.ERROR);

@@ -4,7 +4,7 @@ using NewServer.Models;
 
 namespace NewServer.Database
 {
-    public class DatabaseSuperbase
+    public class DatabaseSupabase
     {
         private static Client? _database;
         private static SupabaseOptions options = new SupabaseOptions
@@ -133,6 +133,60 @@ namespace NewServer.Database
             {
                 Logger.Logger.Log(ex.Message, LogLevel.ERROR);
                 return null;
+            }
+        }
+
+        public static async Task<string?> GetChatInfoById(int chat_id, int user_id)
+        {
+            try
+            {
+                var result = (await _database!.Rpc("get_chat_info", new Dictionary<string, object> { { "param_chat_id", chat_id }, { "param_user_id", user_id } })).Content!;
+
+                Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log(ex.Message, LogLevel.ERROR);
+                return null;
+            }
+        }
+
+        public static async Task<string?> GetMessagesByUserChatId(int user_chat_id)
+        {
+            try
+            {
+                var result = (await _database!.Rpc("get_messages_by_chat_user_id", new Dictionary<string, object> { { "chat_user_id", user_chat_id } })).Content!;
+
+                Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log(ex.Message, LogLevel.ERROR);
+                return null;
+            }
+        }
+
+        async static public Task ResetIdOfUnreadMessages(int userId, int userChatId)
+        {
+            try
+            {
+                await _database!
+                .From<UserChats>()
+                .Set(x => x.first_unread_message_id!, null)
+                .Where(x => x.id == userChatId)
+                .Where(x => x.user_id == userId)
+                .Update();
+
+                Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+            }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log(ex.Message, LogLevel.ERROR);
+                throw new Exception("ResetIdOfUnreadMessages", ex);
             }
         }
     }

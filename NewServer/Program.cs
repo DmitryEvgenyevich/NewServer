@@ -9,16 +9,17 @@ public class Program
     private static ManualResetEvent _quitEvent = new ManualResetEvent(false);
     public static async Task Main(string[] args)
     {
-        await DatabaseSuperbase.DatabaseInit();
+        await DatabaseSupabase.DatabaseInit();
         //var request = new Request
         //{
         //    data = new JObject
         //    {
-        //        { "id", 1 }
+        //        { "chat_id", 2 },
+        //        { "user_id", 1 }
         //    },
         //};
 
-        //await MessengerFunctionality.GetMyChats(request, null);
+        //await MessengerFunctionality.GetChatInfo(request, null);
         WebSocketServerManager.Start("ws://localhost:8000");
 
         Console.CancelKeyPress += (sender, eArgs) =>
