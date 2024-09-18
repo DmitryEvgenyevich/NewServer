@@ -1,8 +1,9 @@
 ﻿namespace NewServer.Enums
 {
-    enum TypesOfChat
+    public enum TypesOfChat
     {
-        CHAT = 1,
-        GROUP = 2
+        CHANNEL = 1, 
+        PRIVATE = 2, 
+        GROUP = 3,
     };
 }

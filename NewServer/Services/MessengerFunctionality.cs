@@ -3,6 +3,7 @@ using NewServer.Enums;
 using NewServer.Server;
 using Newtonsoft.Json.Linq;
 using NewServer.Database;
+using NewServer.Interfaces;
 
 namespace NewServer.Services
 {
@@ -14,7 +15,7 @@ namespace NewServer.Services
             return new Response { errorMessage = "User not found. Login or password is wrong" };
         }
 
-        private static Response HandleInvalidUserData(string message)
+        private static Response HandleError(string message)
         {
             Logger.Logger.Log(message, LogLevel.INFO);
             return new Response { errorMessage = message };
@@ -33,7 +34,7 @@ namespace NewServer.Services
                 var deserializedUser = request.data?.ToObject<User>();
                 if (deserializedUser == null || string.IsNullOrWhiteSpace(deserializedUser.email) || string.IsNullOrWhiteSpace(deserializedUser.password))
                 {
-                    return HandleInvalidUserData("Invalid JSON data or empty email or password provided.");
+                    return HandleError("Invalid JSON data or empty email or password provided.");
                 }
 
                 var result = await DatabaseSupabase.GetUserByEmailAndPassword(deserializedUser.email, deserializedUser.password);
@@ -59,12 +60,12 @@ namespace NewServer.Services
                 var deserializedUser = request.data?.ToObject<User>();
                 if (deserializedUser == null || string.IsNullOrEmpty(deserializedUser.username) || string.IsNullOrEmpty(deserializedUser.password))
                 {
-                    return HandleInvalidUserData("Invalid user data provided.");
+                    return HandleError("Invalid user data provided.");
                 }
 
                 if (await DatabaseSupabase.GetUserByUsername(deserializedUser.username) != null)
                 {
-                    return new Response { errorMessage = "A user with this username already exists." };
+                    return HandleError("A user with this username already exists.");
                 }
 
                 if (await DatabaseSupabase.GetUserByEmail(deserializedUser.email!) != null)
@@ -73,7 +74,7 @@ namespace NewServer.Services
                 }
 
                 int newCode = GlobalUtilities.GlobalUtilities.CreateRandomNumber(1000000, 9999999);
-                _ = Authentication.Authentication.UpdateOrAddNewUser(deserializedUser, newCode.ToString());
+                Authentication.Authentication.UpdateOrAddNewUser(deserializedUser, newCode.ToString());
 
                 Logger.Logger.Log("User successfully signed up.", LogLevel.INFO);
                 return new Response();
@@ -92,7 +93,7 @@ namespace NewServer.Services
 
                 if (deserializedEmailConfirmation?.user == null || string.IsNullOrEmpty(deserializedEmailConfirmation.authenticationCode))
                 {
-                    return HandleInvalidUserData("Invalid user data or code.");
+                    return HandleError("Invalid user data or code.");
                 }
 
                 var result = await Authentication.Authentication.IsCodeRight_DeleteFromList(
@@ -124,7 +125,7 @@ namespace NewServer.Services
 
                 if (deserializedUser == null || string.IsNullOrEmpty(deserializedUser.email))
                 {
-                    return HandleInvalidUserData("Invalid user data or code.");
+                    return HandleError("Invalid user data or code.");
                 }
 
                 var result = await DatabaseSupabase.GetUserByEmail(deserializedUser.email);
@@ -135,7 +136,7 @@ namespace NewServer.Services
                 }
 
                 int newCode = GlobalUtilities.GlobalUtilities.CreateRandomNumber(1000000, 9999999);
-                _ = Authentication.Authentication.UpdateOrAddNewUser(deserializedUser, newCode.ToString());
+                Authentication.Authentication.UpdateOrAddNewUser(deserializedUser, newCode.ToString());
 
                 Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
                 return new Response();
@@ -154,7 +155,7 @@ namespace NewServer.Services
 
                 if (deserializedUser == null || string.IsNullOrEmpty(deserializedUser.email))
                 {
-                    return HandleInvalidUserData("Invalid user data or code.");
+                    return HandleError("Invalid user data or code.");
                 }
 
                 var result = await DatabaseSupabase.SetNewPassword(deserializedUser.email, deserializedUser.password!);
@@ -183,16 +184,16 @@ namespace NewServer.Services
                 if (contactsData == null)
                 {
                     Logger.Logger.Log("Error from db.", LogLevel.ERROR);
-                    return new Response { errorMessage = "Error from db." };
+                    return HandleError("Error from server");
                 }
 
                 Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
-                JArray jsonArray = JArray.Parse(contactsData);
+                JArray jsonArray = JArray.Parse(contactsData!);
                 return new Response { data = jsonArray };
             }
             catch (Exception ex)
             {
-                return new Response { errorMessage = GlobalUtilities.GlobalUtilities.GetErrorMessage(ex) };
+                return LogAndReturnServerError(ex);
             }
         }
 
@@ -206,16 +207,16 @@ namespace NewServer.Services
                 if (chatInfo == null)
                 {
                     Logger.Logger.Log("Error from db.", LogLevel.ERROR);
-                    return new Response { errorMessage = "Error from db." };
+                    return HandleError("Error from server");
                 }
 
                 Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
-                JArray jsonArray = JArray.Parse(chatInfo);
+                JArray jsonArray = JArray.Parse(chatInfo!);
                 return new Response { data = jsonArray[0] };
             }
             catch (Exception ex)
             {
-                return new Response { errorMessage = GlobalUtilities.GlobalUtilities.GetErrorMessage(ex) };
+                return LogAndReturnServerError(ex);
             }
         }
 
@@ -229,32 +230,93 @@ namespace NewServer.Services
                 if (messages == null)
                 {
                     Logger.Logger.Log("Error from db.", LogLevel.ERROR);
-                    return new Response { errorMessage = "Error from db." };
+                    return HandleError("Error from server");
                 }
 
                 Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
                 JArray jsonArray = JArray.Parse(messages);
                 
-                _ = _resetCountOfUnreadMessages(deserializedUserChats!.user_id, deserializedUserChats!.id);
+                _ = ResetCountOfUnreadMessages(request, client);
 
                 return new Response { data = jsonArray };
             }
             catch (Exception ex)
             {
-                return new Response { errorMessage = GlobalUtilities.GlobalUtilities.GetErrorMessage(ex) };
+                return LogAndReturnServerError(ex);
             }
         }
 
-        private static async Task _resetCountOfUnreadMessages(int user_id, int user_chat_id)
+        public static async Task<Response> ResetCountOfUnreadMessages(Request request, Echo? client)
         {
             try
             {
-                await DatabaseSupabase.ResetIdOfUnreadMessages(user_id, user_chat_id);
+                var deserializedUserChats = request.data?.ToObject<UserChats>();
+                await DatabaseSupabase.setIdOfUnreadMessages(deserializedUserChats.user_id, deserializedUserChats.id);
                 Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+
+                return new Response { sendToClient = false };
             }
             catch (Exception ex)
             {
                 Logger.Logger.Log($"Server error occurred.: {ex.Message}", LogLevel.ERROR);
+                return new Response { sendToClient = false };
+            }
+        }
+
+        public static async Task<Response> SendTextMessage(Request request, Echo? client)
+        {
+            try
+            {
+                var deserializedMessage = request.data?.ToObject<Message>();
+                var newMessage = await DatabaseSupabase.AddNewTextMessage(deserializedMessage!);
+                
+                Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+
+                _ = DatabaseSupabase.UpdateFirstUnreadMessage(deserializedMessage!.user_chat_id, newMessage.id);
+
+                _ = sendMessageToUsers(deserializedMessage!.user_chat_id, newMessage.id);
+
+                return new Response { data = new JObject
+                    {
+                        { "message_id", newMessage.id }
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return LogAndReturnServerError(ex);
+            }
+        }
+
+        public static async Task<Response> LogOut(Request request, Echo? client)
+        {
+            WebSocketServerManager.RemoveClient(client!);
+
+            return new Response { sendToClient = false };
+        }
+
+        private static async Task<Response> sendMessageToUsers(int user_chat_id, int message_id)
+        {
+            try
+            {
+                List<DataForNotificationNewMessage> userChatsList = await DatabaseSupabase.getDataForNotificationNewMessage(user_chat_id, message_id);
+
+                foreach (var userChat in userChatsList) { 
+                    WebSocketServerManager.SendNotificationToUser(
+                        userChat.recipient_id,
+                        new Notification 
+                        { 
+                            typeOfNotification = NotificationTypes.NewMessage, 
+                            data = JObject.FromObject(userChat)
+                    });
+                }
+
+                return new Response { sendToClient = false };
+            }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log($"Server error occurred.: {ex.Message}", LogLevel.ERROR);
+                return new Response { sendToClient = false };
             }
         }
     }

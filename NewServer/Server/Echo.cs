@@ -10,15 +10,22 @@ namespace NewServer.Server
     {
         protected override async void OnMessage(MessageEventArgs e)
         {
-            Console.WriteLine("Received from client: " + e.Data);
+            try
+            {
+                Console.WriteLine("Received from client: " + e.Data);
 
-            var request = JsonConvert.DeserializeObject<Request>(e.Data);
-            request!.Socket = this;
+                var request = JsonConvert.DeserializeObject<Request>(e.Data);
+                request!.Socket = this;
 
-            var response = await RequestHandler.HandleRequest(request!, this);
-            response.requestId = request.requestId;
+                var response = await RequestHandler.HandleRequest(request!, this);
+                response.requestId = request.requestId;
 
-            Send(JsonConvert.SerializeObject(response));
+                Send(JsonConvert.SerializeObject(response));
+            }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log($"Error: { ex.Message }", Enums.LogLevel.ERROR);
+            }
         }
 
         protected override void OnClose(CloseEventArgs e)

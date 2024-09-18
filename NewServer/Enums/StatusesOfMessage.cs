@@ -2,7 +2,9 @@
 {
     public enum StatusesOfMessage
     {
-        SENT = 1,
-        READ = 2
+        DO_NOT_SHOW = 0,
+        UREAD = 1,
+        READ = 2,
+        SENDING = 3,
     }
 }
