@@ -319,5 +319,24 @@ namespace NewServer.Services
                 return new Response { sendToClient = false };
             }
         }
+
+        public static async Task<Response> DeleteChat(Request request, Echo? client)
+        {
+            try
+            {
+                var deserializedChat = request.data?.ToObject<Chat>();
+
+                _ = DatabaseSupabase.DeleteChatByChatId(deserializedChat!.id);
+
+                Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+
+                return new Response { sendToClient = false };
+            }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log(ex.Message, LogLevel.INFO);
+                return new Response { sendToClient = false };
+            }
+        }
     }
 }

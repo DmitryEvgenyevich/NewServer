@@ -312,27 +312,57 @@ namespace NewServer.Database
             }
         }
 
-        public static async Task<string> getChatTitle(TypesOfChat type, int chat_id, int user_chat_id)
+        public static async Task<string?> getChatTitle(TypesOfChat type, int chat_id, int user_chat_id)
         {
-            switch (type)
+            try
             {
-                case TypesOfChat.CHANNEL:
-                    return "";
+                switch (type)
+                {
+                    case TypesOfChat.CHANNEL:
+                        return "";
 
-                case TypesOfChat.PRIVATE:
-                    var chat = await GetUserChatByUserChatId(user_chat_id);
-                    var result = await _database.From<User>()
-                        .Select(x => new object[] { x.username })
-                        .Where(x => x.id == chat.user_id)
-                        .Single();
+                    case TypesOfChat.PRIVATE:
+                        var chat = await GetUserChatByUserChatId(user_chat_id);
+                        var result = await _database.From<User>()
+                            .Select(x => new object[] { x.username })
+                            .Where(x => x.id == chat.user_id)
+                            .Single();
 
-                    return result.username;
+                        Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
 
-                case TypesOfChat.GROUP:
-                    return "";
+                        return result.username;
+
+                    case TypesOfChat.GROUP:
+                        return "";
+
+                    default:
+                        Logger.Logger.Log("Can not find this TypesOfChat", LogLevel.ERROR);
+                        return null;
+
+                }
             }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log(ex.Message, LogLevel.ERROR);
+                return null;
+            }
+        }
 
-            return "";
+        public static async Task DeleteChatByChatId(int chat_id)
+        {
+            try
+            {
+                await _database!.Rpc("delete_chat_by_id", new Dictionary<string, object> { { "param_chat_id", chat_id } });
+
+                Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+
+                return;
+            }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log(ex.Message, LogLevel.ERROR);
+                return;
+            }
         }
     }
 }
