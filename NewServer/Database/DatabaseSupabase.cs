@@ -2,7 +2,6 @@
 using NewServer.Enums;
 using NewServer.Models;
 using Newtonsoft.Json;
-using System.Reflection.Metadata.Ecma335;
 
 namespace NewServer.Database
 {
@@ -362,6 +361,23 @@ namespace NewServer.Database
             {
                 Logger.Logger.Log(ex.Message, LogLevel.ERROR);
                 return;
+            }
+        }
+
+        public static async Task<string?> FindChatsByTitle(string chat_title, int user_id)
+        {
+            try
+            {
+                var result = await _database!.Rpc("search_chat", new Dictionary<string, object> { { "param_search_term", chat_title}, { "param_user_id", user_id } });
+
+                Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+
+                return result.Content!;
+            }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log(ex.Message, LogLevel.ERROR);
+                return null;
             }
         }
     }
