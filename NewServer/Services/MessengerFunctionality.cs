@@ -338,5 +338,23 @@ namespace NewServer.Services
                 return new Response { sendToClient = false };
             }
         }
+
+        public static async Task<Response> GetChatsByChatTitle(Request request, Echo? client)
+        {
+            try
+            {
+                var deserializedUserChatSearchCriteria = request.data?.ToObject<UserChatSearchCriteria>();
+
+                var chats = await DatabaseSupabase.FindChatsByTitle(deserializedUserChatSearchCriteria.chat_title, deserializedUserChatSearchCriteria.user_id);
+
+                Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+                JArray jsonArray = JArray.Parse(chats!);
+                return new Response { data = jsonArray };
+            }
+            catch (Exception ex)
+            {
+                return LogAndReturnServerError(ex);
+            }
+        }
     }
 }
