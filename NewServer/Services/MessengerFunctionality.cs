@@ -188,7 +188,23 @@ namespace NewServer.Services
                 }
 
                 Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+                
                 JArray jsonArray = JArray.Parse(contactsData!);
+
+                var tasks = jsonArray.Select(async token =>
+                {
+                    JObject obj = (JObject)token;
+
+                    if (obj["avatar_path"] != null)
+                    {
+                        var avatarUrl = await DatabaseSupabase.getAvatarUrl((string)obj["avatar_path"]);
+                        obj.Add("avatar_url", avatarUrl);
+                    }
+                }).ToList();
+
+                await Task.WhenAll(tasks);
+
+
                 return new Response { data = jsonArray };
             }
             catch (Exception ex)

@@ -30,6 +30,8 @@ namespace NewServer.Models
         [Column("avatar_id")]
         public int? avatar_id { get; set; }
 
+        public string? avatar_url { get; set; }
+
         public override bool Equals(object obj)
         {
             if (obj == null || !(obj is User))

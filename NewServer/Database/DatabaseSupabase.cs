@@ -40,16 +40,34 @@ namespace NewServer.Database
             }
         }
 
+        public static async Task<string> getAvatarUrl(string avatar)
+        {
+            var storage = _database.Storage;
+            var bucket = storage.From("avatars");
+
+            return await bucket.CreateSignedUrl(avatar, 3600);
+
+        }
+
         public static async Task<User?> GetUserByEmailAndPassword(string email, string password)
         {
             try
             {
                 var result = await _database!.From<User>()
-                    .Select(x => new object[] { x.id, x.username!, x.email!, x.description! })
+                    .Select(x => new object[] { x.id, x.username!, x.email!, x.description!, x.avatar_id! })
                     .Where(x => x.email == email && x.password == password)
                     .Single();
 
+                var avatar = await _database!.From<Files>()
+                    .Select(x => new object[] { x.path })
+                    .Where(x => x.id == result.avatar_id)
+                    .Single();
+
+                var publicUrl = await getAvatarUrl(avatar.path);
+
                 Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+
+                result.avatar_url = publicUrl;
 
                 return result;
             }
