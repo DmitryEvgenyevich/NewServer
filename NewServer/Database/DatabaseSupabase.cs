@@ -2,6 +2,7 @@
 using NewServer.Enums;
 using NewServer.Models;
 using Newtonsoft.Json;
+using System;
 
 namespace NewServer.Database
 {
@@ -421,6 +422,21 @@ namespace NewServer.Database
             {
                 Logger.Logger.Log(ex.Message, LogLevel.ERROR);
                 return null;
+            }
+        }
+
+        public static async Task UpdateMutedStatus(int id_of_user_chat, bool status)
+        {
+            try
+            {
+                await _database.From<UserChats>()
+                    .Set(x => x.is_muted!, status)
+                    .Where(x => x.id == id_of_user_chat)
+                    .Update();
+            }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log(ex.Message, LogLevel.ERROR);
             }
         }
     }
