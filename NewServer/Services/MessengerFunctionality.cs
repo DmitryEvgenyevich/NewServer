@@ -372,5 +372,27 @@ namespace NewServer.Services
                 return LogAndReturnServerError(ex);
             }
         }
+
+        public static async Task<Response> SetAvatar(Request request, Echo? client)
+        {
+            try
+            {
+                var deserializedSetAvatarCriteria = request.data?.ToObject<SetAvatarCriteria>();
+
+                var avatar_url = await DatabaseSupabase.UploadBase64AvatarToSupabaseStorage(deserializedSetAvatarCriteria.image, deserializedSetAvatarCriteria.user_id);
+
+                Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+                
+                return new Response { data = new JObject
+                    {
+                        { "avatar_url", avatar_url }
+                    }                
+                };
+            }
+            catch (Exception ex)
+            {
+                return LogAndReturnServerError(ex);
+            }
+        }
     }
 }

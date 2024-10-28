@@ -42,11 +42,18 @@ namespace NewServer.Database
 
         public static async Task<string> getAvatarUrl(string avatar)
         {
-            var storage = _database.Storage;
-            var bucket = storage.From("avatars");
+            try
+            {
+                var storage = _database.Storage;
+                var bucket = storage.From("avatars");
 
-            return await bucket.CreateSignedUrl(avatar, 3600);
-
+                return await bucket.CreateSignedUrl(avatar, 3600);
+            }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log(ex.Message, LogLevel.ERROR);
+                return null;
+            }
         }
 
         public static async Task<User?> GetUserByEmailAndPassword(string email, string password)
@@ -391,6 +398,24 @@ namespace NewServer.Database
                 Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
 
                 return result.Content!;
+            }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log(ex.Message, LogLevel.ERROR);
+                return null;
+            }
+        }
+
+        public static async Task<string?> UploadBase64AvatarToSupabaseStorage(string base64String, int user_id)
+        {
+            try
+            {
+                var base64Data = base64String.Contains(",") ? base64String.Split(',')[1] : base64String;
+                byte[] imageBytes = Convert.FromBase64String(base64Data);
+                await _database.Storage.From("avatars").Remove(new List<string> { $"{user_id}/1.png" });
+
+                await _database.Storage.From("avatars").Upload(imageBytes, $"{user_id}/1.png");
+                return await getAvatarUrl($"{user_id}/1.png");
             }
             catch (Exception ex)
             {
