@@ -40,16 +40,41 @@ namespace NewServer.Database
             }
         }
 
+        public static async Task<string> getAvatarUrl(string avatar)
+        {
+            try
+            {
+                var storage = _database.Storage;
+                var bucket = storage.From("avatars");
+
+                return await bucket.CreateSignedUrl(avatar, 3600);
+            }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log(ex.Message, LogLevel.ERROR);
+                return null;
+            }
+        }
+
         public static async Task<User?> GetUserByEmailAndPassword(string email, string password)
         {
             try
             {
                 var result = await _database!.From<User>()
-                    .Select(x => new object[] { x.id, x.username!, x.email!, x.description! })
+                    .Select(x => new object[] { x.id, x.username!, x.email!, x.description!, x.avatar_id! })
                     .Where(x => x.email == email && x.password == password)
                     .Single();
 
+                var avatar = await _database!.From<Files>()
+                    .Select(x => new object[] { x.path })
+                    .Where(x => x.id == result.avatar_id)
+                    .Single();
+
+                var publicUrl = await getAvatarUrl(avatar.path);
+
                 Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+
+                result.avatar_url = publicUrl;
 
                 return result;
             }
@@ -373,6 +398,24 @@ namespace NewServer.Database
                 Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
 
                 return result.Content!;
+            }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log(ex.Message, LogLevel.ERROR);
+                return null;
+            }
+        }
+
+        public static async Task<string?> UploadBase64AvatarToSupabaseStorage(string base64String, int user_id)
+        {
+            try
+            {
+                var base64Data = base64String.Contains(",") ? base64String.Split(',')[1] : base64String;
+                byte[] imageBytes = Convert.FromBase64String(base64Data);
+                await _database.Storage.From("avatars").Remove(new List<string> { $"{user_id}/1.png" });
+
+                await _database.Storage.From("avatars").Upload(imageBytes, $"{user_id}/1.png");
+                return await getAvatarUrl($"{user_id}/1.png");
             }
             catch (Exception ex)
             {

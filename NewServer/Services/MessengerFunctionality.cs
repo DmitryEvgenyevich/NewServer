@@ -188,7 +188,23 @@ namespace NewServer.Services
                 }
 
                 Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+                
                 JArray jsonArray = JArray.Parse(contactsData!);
+
+                var tasks = jsonArray.Select(async token =>
+                {
+                    JObject obj = (JObject)token;
+
+                    if (obj["avatar_path"] != null)
+                    {
+                        var avatarUrl = await DatabaseSupabase.getAvatarUrl((string)obj["avatar_path"]);
+                        obj.Add("avatar_url", avatarUrl);
+                    }
+                }).ToList();
+
+                await Task.WhenAll(tasks);
+
+
                 return new Response { data = jsonArray };
             }
             catch (Exception ex)
@@ -350,6 +366,28 @@ namespace NewServer.Services
                 Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
                 JArray jsonArray = JArray.Parse(chats!);
                 return new Response { data = jsonArray };
+            }
+            catch (Exception ex)
+            {
+                return LogAndReturnServerError(ex);
+            }
+        }
+
+        public static async Task<Response> SetAvatar(Request request, Echo? client)
+        {
+            try
+            {
+                var deserializedSetAvatarCriteria = request.data?.ToObject<SetAvatarCriteria>();
+
+                var avatar_url = await DatabaseSupabase.UploadBase64AvatarToSupabaseStorage(deserializedSetAvatarCriteria.image, deserializedSetAvatarCriteria.user_id);
+
+                Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+                
+                return new Response { data = new JObject
+                    {
+                        { "avatar_url", avatar_url }
+                    }                
+                };
             }
             catch (Exception ex)
             {
