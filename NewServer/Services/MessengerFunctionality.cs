@@ -3,7 +3,6 @@ using NewServer.Enums;
 using NewServer.Server;
 using Newtonsoft.Json.Linq;
 using NewServer.Database;
-using NewServer.Interfaces;
 
 namespace NewServer.Services
 {
@@ -350,7 +349,7 @@ namespace NewServer.Services
             }
             catch (Exception ex)
             {
-                Logger.Logger.Log(ex.Message, LogLevel.INFO);
+                Logger.Logger.Log(ex.Message, LogLevel.ERROR);
                 return new Response { sendToClient = false };
             }
         }
@@ -392,6 +391,25 @@ namespace NewServer.Services
             catch (Exception ex)
             {
                 return LogAndReturnServerError(ex);
+            }
+        }
+
+        public static async Task<Response> UpdateIsMuted(Request request, Echo? client)
+        {
+            try
+            {
+                var deserializedUserChats = request.data?.ToObject<UserChats>();
+
+                _ = DatabaseSupabase.UpdateMutedStatus(deserializedUserChats.id, deserializedUserChats.is_muted);
+
+                Logger.Logger.Log("Operation successfully completed.", LogLevel.INFO);
+
+                return new Response { sendToClient = false };
+            }
+            catch (Exception ex)
+            {
+                Logger.Logger.Log(ex.Message, LogLevel.ERROR);
+                return new Response { sendToClient = false };
             }
         }
     }
